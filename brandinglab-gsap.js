@@ -8,7 +8,7 @@
  * - ScrollTrigger
  * - SplitText (Club GreenSock)
  * 
- * @version 2.0.0
+ * @version 2.1.0
  * @author BrandingLab
  */
 
@@ -39,6 +39,15 @@
       blockSelector: '.transition-block',
       pageLoadStagger: 0.75,
       pageExitStagger: 0.5
+    },
+    
+    // Footer parallax
+    footerParallax: {
+      wrapper: '[data-footer-parallax]',
+      inner: '[data-footer-parallax-inner]',
+      parallaxAmount: 0.3,
+      mobileBreakpoint: 768,
+      markers: false
     },
     
     // Selectors
@@ -86,6 +95,13 @@
    */
   function prefersReducedMotion() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /**
+   * Check if device is mobile
+   */
+  function isMobile() {
+    return window.innerWidth < CONFIG.footerParallax.mobileBreakpoint;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -575,6 +591,101 @@
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // FOOTER PARALLAX
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Footer Parallax Effect
+   * Creates a reveal effect where the footer appears fixed while scrolling
+   * Based on Osmo Supply's footer parallax pattern
+   */
+  function initFooterParallax() {
+    const cfg = CONFIG.footerParallax;
+    const wrappers = document.querySelectorAll(cfg.wrapper);
+
+    if (wrappers.length === 0) return;
+
+    wrappers.forEach((wrapper, index) => {
+      const inner = wrapper.querySelector(cfg.inner);
+
+      if (!inner) {
+        console.warn(`Footer Parallax: No inner element found for wrapper ${index + 1}`);
+        return;
+      }
+
+      // Get the natural height of the footer
+      const footerHeight = inner.offsetHeight;
+
+      // Set wrapper height to match footer
+      gsap.set(wrapper, { 
+        height: footerHeight 
+      });
+
+      // Set initial position for the inner footer
+      gsap.set(inner, {
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        width: '100%'
+      });
+
+      // Create the parallax effect
+      ScrollTrigger.create({
+        trigger: wrapper,
+        start: 'top bottom',
+        end: 'bottom bottom',
+        markers: cfg.markers,
+        onUpdate: (self) => {
+          // Skip parallax on mobile
+          if (isMobile()) {
+            gsap.set(inner, { y: 0 });
+            return;
+          }
+
+          const progress = self.progress;
+          const yOffset = (1 - progress) * footerHeight * cfg.parallaxAmount;
+          
+          gsap.set(inner, { 
+            y: yOffset,
+            position: 'fixed',
+            bottom: 0
+          });
+        },
+        onLeave: () => {
+          // When scrolled past, make footer relative
+          gsap.set(inner, { 
+            position: 'relative', 
+            y: 0 
+          });
+        },
+        onEnterBack: () => {
+          // When scrolling back up, restore fixed position
+          gsap.set(inner, { 
+            position: 'fixed', 
+            bottom: 0 
+          });
+        }
+      });
+    });
+
+    // Handle window resize - update wrapper heights
+    let footerResizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(footerResizeTimeout);
+      footerResizeTimeout = setTimeout(() => {
+        wrappers.forEach(wrapper => {
+          const inner = wrapper.querySelector(cfg.inner);
+          if (inner) {
+            const footerHeight = inner.offsetHeight;
+            gsap.set(wrapper, { height: footerHeight });
+          }
+        });
+        ScrollTrigger.refresh();
+      }, 250);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // PAGE TRANSITIONS (Pixelated)
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -768,6 +879,9 @@
     initHoverGlow();
     initHoverGrow();
     initMagnetic();
+
+    // Footer parallax
+    initFooterParallax();
 
     // Page transitions
     initPageTransitions();
