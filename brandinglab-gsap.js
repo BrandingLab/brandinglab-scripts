@@ -1,907 +1,484 @@
-/**
- * BrandingLab.io — GSAP Animation System
- * 
- * A comprehensive, data-attribute driven animation library
- * 
- * Dependencies:
- * - GSAP 3.12+
- * - ScrollTrigger
- * - SplitText (Club GreenSock)
- * 
- * @version 2.1.0
- * @author BrandingLab
- */
+// ============================================
+// BRANDINGLAB GSAP ANIMATIONS
+// All animation systems consolidated
+// ============================================
 
+// ============================================
+// GSAP PLUGIN REGISTRATION
+// ============================================
 (function() {
-  'use strict';
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CONFIGURATION
-  // ═══════════════════════════════════════════════════════════════════════════
+  if (window.__gsapPluginsRegistered) return;
+  window.__gsapPluginsRegistered = true;
   
-  const CONFIG = {
-    // Animation defaults
-    duration: 0.8,
-    ease: 'power2.out',
-    stagger: 0.1,
-    
-    // ScrollTrigger defaults
-    scrollStart: 'top 85%',
-    scrollEnd: 'bottom 20%',
-    
-    // Highlight text defaults
-    highlightFade: 0.2,
-    highlightStagger: 0.1,
-    
-    // Page transition
-    transition: {
-      selector: '.transition',
-      blockSelector: '.transition-block',
-      pageLoadStagger: 0.75,
-      pageExitStagger: 0.5
-    },
-    
-    // Footer parallax
-    footerParallax: {
-      wrapper: '[data-footer-parallax]',
-      inner: '[data-footer-parallax-inner]',
-      parallaxAmount: 0.3,
-      mobileBreakpoint: 768,
-      markers: false
-    },
-    
-    // Selectors
-    selectors: {
-      fadeUp: '[data-gsap="fade-up"]',
-      fadeDown: '[data-gsap="fade-down"]',
-      fadeLeft: '[data-gsap="fade-left"]',
-      fadeRight: '[data-gsap="fade-right"]',
-      zoomIn: '[data-gsap="zoom-in"]',
-      scaleUp: '[data-gsap="scale-up"]',
-      heroText: '[data-gsap="hero-text"]',
-      heroImage: '[data-gsap="hero-image"]',
-      heroBadge: '[data-gsap="hero-badge"]',
-      splitText: '[data-gsap="split-text"]',
-      staggerChildren: '[data-gsap="stagger-children"]',
-      counter: '[data-gsap="counter"]',
-      highlightText: '[data-highlight-text]',
-      hoverGlow: '[data-gsap-hover="glow"]',
-      hoverGrow: '[data-gsap-hover="grow"]',
-      hoverMagnetic: '[data-gsap-hover="magnetic"]'
-    }
-  };
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // UTILITY FUNCTIONS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // Only register plugins that are loaded
+  const plugins = [ScrollTrigger];
+  if (typeof SplitText !== 'undefined') plugins.push(SplitText);
+  if (typeof ScrambleTextPlugin !== 'undefined') plugins.push(ScrambleTextPlugin);
+  if (typeof TextPlugin !== 'undefined') plugins.push(TextPlugin);
   
-  /**
-   * Get numeric attribute with fallback
-   */
-  function getAttr(el, attr, fallback) {
-    const val = el.getAttribute(attr);
-    return val !== null ? parseFloat(val) : fallback;
-  }
+  gsap.registerPlugin(...plugins);
+  console.log('GSAP v' + gsap.version + ' plugins registered');
+})();
 
-  /**
-   * Get string attribute with fallback
-   */
-  function getAttrStr(el, attr, fallback) {
-    return el.getAttribute(attr) || fallback;
-  }
+// ============================================
+// 1. PIXELATED IMAGE REVEAL ANIMATION
+// Hover effect for project cards
+// ============================================
+function initPixelatedImageReveal() {
+  const animationStepDuration = 0.3;
+  const gridSize = 7;
+  const pixelSize = 100 / gridSize;
+  const cards = document.querySelectorAll('[data-pixelated-image-reveal]');
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches;
 
-  /**
-   * Check if reduced motion is preferred
-   */
-  function prefersReducedMotion() {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }
+  cards.forEach((card) => {
+    const pixelGrid = card.querySelector('[data-pixelated-image-reveal-grid]');
+    const activeCard = card.querySelector('[data-pixelated-image-reveal-active]');
+    if (!pixelGrid || !activeCard) return;
 
-  /**
-   * Check if device is mobile
-   */
-  function isMobile() {
-    return window.innerWidth < CONFIG.footerParallax.mobileBreakpoint;
-  }
+    // Clear existing pixels
+    const existingPixels = pixelGrid.querySelectorAll('.pixelated-image-card__pixel');
+    existingPixels.forEach(pixel => pixel.remove());
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SCROLL ANIMATIONS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Fade Up Animation
-   */
-  function initFadeUp() {
-    const elements = document.querySelectorAll(CONFIG.selectors.fadeUp);
-    
-    elements.forEach(el => {
-      const delay = getAttr(el, 'data-gsap-delay', 0);
-      const duration = getAttr(el, 'data-gsap-duration', CONFIG.duration);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      
-      gsap.fromTo(el, 
-        { 
-          opacity: 0, 
-          y: 40 
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: duration,
-          delay: delay,
-          ease: CONFIG.ease,
-          scrollTrigger: {
-            trigger: el,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * Fade Down Animation
-   */
-  function initFadeDown() {
-    const elements = document.querySelectorAll(CONFIG.selectors.fadeDown);
-    
-    elements.forEach(el => {
-      const delay = getAttr(el, 'data-gsap-delay', 0);
-      const duration = getAttr(el, 'data-gsap-duration', CONFIG.duration);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      
-      gsap.fromTo(el,
-        { 
-          opacity: 0, 
-          y: -40 
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: duration,
-          delay: delay,
-          ease: CONFIG.ease,
-          scrollTrigger: {
-            trigger: el,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * Fade Left Animation
-   */
-  function initFadeLeft() {
-    const elements = document.querySelectorAll(CONFIG.selectors.fadeLeft);
-    
-    elements.forEach(el => {
-      const delay = getAttr(el, 'data-gsap-delay', 0);
-      const duration = getAttr(el, 'data-gsap-duration', CONFIG.duration);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      
-      gsap.fromTo(el,
-        { 
-          opacity: 0, 
-          x: 40 
-        },
-        {
-          opacity: 1,
-          x: 0,
-          duration: duration,
-          delay: delay,
-          ease: CONFIG.ease,
-          scrollTrigger: {
-            trigger: el,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * Fade Right Animation
-   */
-  function initFadeRight() {
-    const elements = document.querySelectorAll(CONFIG.selectors.fadeRight);
-    
-    elements.forEach(el => {
-      const delay = getAttr(el, 'data-gsap-delay', 0);
-      const duration = getAttr(el, 'data-gsap-duration', CONFIG.duration);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      
-      gsap.fromTo(el,
-        { 
-          opacity: 0, 
-          x: -40 
-        },
-        {
-          opacity: 1,
-          x: 0,
-          duration: duration,
-          delay: delay,
-          ease: CONFIG.ease,
-          scrollTrigger: {
-            trigger: el,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * Zoom In Animation
-   */
-  function initZoomIn() {
-    const elements = document.querySelectorAll(CONFIG.selectors.zoomIn);
-    
-    elements.forEach(el => {
-      const delay = getAttr(el, 'data-gsap-delay', 0);
-      const duration = getAttr(el, 'data-gsap-duration', CONFIG.duration);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      
-      gsap.fromTo(el,
-        { 
-          opacity: 0, 
-          scale: 0.8 
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: duration,
-          delay: delay,
-          ease: 'back.out(1.7)',
-          scrollTrigger: {
-            trigger: el,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * Scale Up Animation
-   */
-  function initScaleUp() {
-    const elements = document.querySelectorAll(CONFIG.selectors.scaleUp);
-    
-    elements.forEach(el => {
-      const delay = getAttr(el, 'data-gsap-delay', 0);
-      const duration = getAttr(el, 'data-gsap-duration', CONFIG.duration);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      
-      gsap.fromTo(el,
-        { 
-          opacity: 0, 
-          scale: 0.5 
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: duration,
-          delay: delay,
-          ease: CONFIG.ease,
-          scrollTrigger: {
-            trigger: el,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * Stagger Children Animation
-   */
-  function initStaggerChildren() {
-    const containers = document.querySelectorAll(CONFIG.selectors.staggerChildren);
-    
-    containers.forEach(container => {
-      const children = container.children;
-      const staggerAmount = getAttr(container, 'data-gsap-stagger', CONFIG.stagger);
-      const delay = getAttr(container, 'data-gsap-delay', 0);
-      const start = getAttrStr(container, 'data-gsap-start', CONFIG.scrollStart);
-      
-      gsap.fromTo(children,
-        { 
-          opacity: 0, 
-          y: 30 
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: CONFIG.duration,
-          delay: delay,
-          stagger: staggerAmount,
-          ease: CONFIG.ease,
-          scrollTrigger: {
-            trigger: container,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HERO ANIMATIONS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Hero Section Animations (runs on page load, no scroll trigger)
-   */
-  function initHero() {
-    const tl = gsap.timeline({ defaults: { ease: CONFIG.ease } });
-
-    // Hero eyebrow / badge
-    const heroBadge = document.querySelector(CONFIG.selectors.heroBadge);
-    if (heroBadge) {
-      tl.fromTo(heroBadge,
-        { opacity: 0, y: -20 },
-        { opacity: 1, y: 0, duration: 0.6 },
-        0.2
-      );
+    // Create pixel grid
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const pixel = document.createElement('div');
+        pixel.classList.add('pixelated-image-card__pixel');
+        pixel.style.width = `${pixelSize}%`;
+        pixel.style.height = `${pixelSize}%`;
+        pixel.style.left = `${col * pixelSize}%`;
+        pixel.style.top = `${row * pixelSize}%`;
+        pixelGrid.appendChild(pixel);
+      }
     }
 
-    // Hero text
-    const heroText = document.querySelectorAll(CONFIG.selectors.heroText);
-    heroText.forEach((el, i) => {
-      const delay = getAttr(el, 'data-gsap-delay', 0.3 + (i * 0.1));
-      tl.fromTo(el,
-        { opacity: 0, y: 40 },
-        { opacity: 1, y: 0, duration: 0.8 },
-        delay
-      );
-    });
+    const pixels = pixelGrid.querySelectorAll('.pixelated-image-card__pixel');
+    const totalPixels = pixels.length;
+    const staggerDuration = animationStepDuration / totalPixels;
+    let isActive = false;
+    let delayedCall;
 
-    // Hero image
-    const heroImage = document.querySelector(CONFIG.selectors.heroImage);
-    if (heroImage) {
-      tl.fromTo(heroImage,
-        { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 1, ease: 'power3.out' },
-        0.5
-      );
+    const animatePixels = (activate) => {
+      isActive = activate;
+      gsap.killTweensOf(pixels);
+      if (delayedCall) delayedCall.kill();
+      gsap.set(pixels, { display: 'none' });
+
+      gsap.to(pixels, {
+        display: 'block',
+        duration: 0,
+        stagger: { each: staggerDuration, from: 'random' }
+      });
+
+      delayedCall = gsap.delayedCall(animationStepDuration, () => {
+        activeCard.style.display = activate ? 'block' : 'none';
+        activeCard.style.pointerEvents = activate ? 'none' : '';
+      });
+
+      gsap.to(pixels, {
+        display: 'none',
+        duration: 0,
+        delay: animationStepDuration,
+        stagger: { each: staggerDuration, from: 'random' }
+      });
+    };
+
+    if (isTouchDevice) {
+      card.addEventListener('click', () => animatePixels(!isActive));
+    } else {
+      card.addEventListener('mouseenter', () => {
+        if (!isActive) animatePixels(true);
+      });
+      card.addEventListener('mouseleave', () => {
+        if (isActive) animatePixels(false);
+      });
     }
+  });
+
+  if (cards.length > 0) {
+    console.log('Pixelated image reveal initialized (' + cards.length + ' cards)');
+  }
+}
+
+// ============================================
+// 2. SCRAMBLE TEXT & SPLIT TEXT ANIMATIONS
+// ============================================
+function initScrambleAndSplitText() {
+  // SCRAMBLE ANIMATION — runs on page load
+  const scrambleEls = document.querySelectorAll(".scramble");
+  scrambleEls.forEach(el => {
+    if (typeof ScrambleTextPlugin !== 'undefined') {
+      gsap.to(el, {
+        duration: 4,
+        scrambleText: {
+          text: el.textContent,
+          chars: "+?84564XERSHKZN",
+          speed: 0.6
+        }
+      });
+    }
+  });
+
+  if (scrambleEls.length > 0) {
+    console.log('Scramble text initialized (' + scrambleEls.length + ' elements)');
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // TEXT ANIMATIONS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // SPLIT TEXT ANIMATION — elements with .split class
+  if (typeof SplitText === 'undefined') return;
+  
+  const splitEls = document.querySelectorAll(".split");
+  splitEls.forEach(el => {
+    ScrollTrigger.create({
+      trigger: el,
+      start: "top 80%",
+      once: true,
+      onEnter: () => {
+        const split = new SplitText(el, { type: "words, chars" });
+        gsap.from(split.chars, {
+          y: 100,
+          autoAlpha: 0,
+          stagger: 0.05,
+          duration: 1,
+          ease: "power2.out"
+        });
+      }
+    });
+  });
 
-  /**
-   * Split Text Animation (word or character based)
-   */
-  function initSplitText() {
-    // Check if SplitText is available
-    if (typeof SplitText === 'undefined') {
-      console.warn('SplitText plugin not loaded');
+  if (splitEls.length > 0) {
+    console.log('Split text initialized (' + splitEls.length + ' elements)');
+  }
+
+  // HERO TRUST SECTION ANIMATION
+  const trustHeadline = document.querySelector(".hero-section.light-theme .hero-text");
+  if (trustHeadline) {
+    ScrollTrigger.create({
+      trigger: ".hero-section.light-theme",
+      start: "top 80%",
+      once: true,
+      onEnter: () => {
+        const splitTrust = new SplitText(trustHeadline, { type: "lines, words" });
+        gsap.from(splitTrust.words, {
+          opacity: 0,
+          y: 50,
+          stagger: 0.05,
+          duration: 0.8,
+          ease: "power2.out"
+        });
+      }
+    });
+    console.log('Trust headline animation initialized');
+  }
+}
+
+// ============================================
+// 3. TEXT HIGHLIGHTING ANIMATION
+// Character-by-character fade-in on scroll
+// ============================================
+function initHighlightText() {
+  if (typeof SplitText === 'undefined') return;
+  
+  const splitHeadingTargets = document.querySelectorAll("[data-highlight-text]");
+  if (splitHeadingTargets.length === 0) return;
+
+  splitHeadingTargets.forEach((heading) => {
+    const scrollStart = heading.getAttribute("data-highlight-scroll-start") || "top 90%";
+    const scrollEnd = heading.getAttribute("data-highlight-scroll-end") || "center 40%";
+    const fadedValue = parseFloat(heading.getAttribute("data-highlight-fade")) || 0.2;
+    const staggerValue = parseFloat(heading.getAttribute("data-highlight-stagger")) || 0.02;
+
+    const textContent = heading.textContent;
+    heading.textContent = textContent;
+
+    let splitText;
+    try {
+      splitText = new SplitText(heading, {
+        type: "words,chars",
+        wordsClass: "word",
+        charsClass: "char"
+      });
+    } catch (e) {
+      console.warn("SplitText failed for element:", heading, e);
       return;
     }
 
-    const elements = document.querySelectorAll(CONFIG.selectors.splitText);
+    if (!splitText.chars || splitText.chars.length === 0) {
+      console.warn("SplitText produced no characters for:", heading);
+      return;
+    }
+
+    gsap.set(splitText.chars, { opacity: fadedValue });
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: heading,
+        start: scrollStart,
+        end: scrollEnd,
+        scrub: 0.6
+      }
+    });
+
+    tl.to(splitText.chars, {
+      opacity: 1,
+      duration: 1,
+      stagger: staggerValue,
+      ease: "none"
+    });
+  });
+
+  console.log('Text highlighting initialized (' + splitHeadingTargets.length + ' elements)');
+}
+
+// ============================================
+// 4. PREMIUM PILL DESIGN (JavaScript Fallback)
+// ============================================
+function applyPremiumPillDesign() {
+  const premiumElement = Array.from(document.querySelectorAll('*')).find(el =>
+    el.textContent.trim() === 'PREMIUM' && el.children.length === 0
+  );
+  const premiumByAttr = document.querySelector('[data-premium-pill]');
+  const premiumByClass = document.querySelector('.premium-pill');
+  const target = premiumElement || premiumByAttr || premiumByClass;
+
+  if (target && !target.classList.contains('premium-pill-styled')) {
+    Object.assign(target.style, {
+      display: 'inline-block',
+      padding: window.innerWidth <= 767 ? '6px 20px' : '8px 24px',
+      backgroundColor: 'rgba(255, 103, 3, 0.15)',
+      border: '1px solid rgb(255, 103, 3)',
+      borderRadius: '50px',
+      color: 'rgb(255, 103, 3)',
+      fontSize: window.innerWidth <= 767 ? '12px' : '14px',
+      fontWeight: '600',
+      letterSpacing: '0.05em',
+      textTransform: 'uppercase'
+    });
+    target.classList.add('premium-pill-styled');
+    console.log('Premium pill design applied');
+  }
+}
+
+// ============================================
+// 5. HERO ENTRANCE ANIMATION
+// ============================================
+function initHeroEntrance() {
+  const heroSection = document.querySelector('.home-hero-section');
+  if (!heroSection) return;
+
+  const heroBadges = heroSection.querySelectorAll('[data-gsap="hero-badge"]');
+  const heroTexts = heroSection.querySelectorAll('[data-gsap="hero-text"]');
+  const heroSub = heroSection.querySelector('.low-brow, .sub-paragraph');
+  const heroAction = heroSection.querySelector('.scroll-into-view-08s, .action-wrapper');
+
+  if (heroBadges.length === 0 && heroTexts.length === 0) return;
+
+  heroBadges.forEach(el => {
+    gsap.set(el, { opacity: 0, y: 40 });
+  });
+
+  heroTexts.forEach(el => {
+    gsap.set(el, { opacity: 0, y: 60 });
+  });
+
+  if (heroSub && !heroSub.hasAttribute('data-gsap')) {
+    gsap.set(heroSub, { opacity: 0, y: 40 });
+  }
+  if (heroAction && !heroAction.hasAttribute('data-gsap')) {
+    gsap.set(heroAction, { opacity: 0, y: 40 });
+  }
+
+  const heroTl = gsap.timeline({ delay: 0.2 });
+
+  heroBadges.forEach((el, i) => {
+    heroTl.to(el, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, i * 0.1);
+  });
+
+  heroTexts.forEach((el, i) => {
+    heroTl.to(el, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 0.15 + (i * 0.15));
+  });
+
+  if (heroSub && !heroSub.hasAttribute('data-gsap')) {
+    heroTl.to(heroSub, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 0.3);
+  }
+
+  if (heroAction && !heroAction.hasAttribute('data-gsap')) {
+    heroTl.to(heroAction, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 0.45);
+  }
+
+  console.log('Hero entrance: ' + heroBadges.length + ' badges, ' + heroTexts.length + ' texts');
+}
+
+// ============================================
+// 6. SCROLL REVEAL ANIMATIONS
+// ============================================
+function initScrollReveal() {
+  const hiddenElements = document.querySelectorAll('[data-w-id][style*="opacity: 0"], [data-w-id][style*="opacity:0"]');
+  if (hiddenElements.length === 0) return;
+
+  hiddenElements.forEach((el, index) => {
+    if (el.closest('.home-hero-section')) return;
     
-    elements.forEach(el => {
-      const splitType = getAttrStr(el, 'data-gsap-split', 'words');
-      const staggerAmount = getAttr(el, 'data-gsap-stagger', 0.05);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      
-      const split = new SplitText(el, { 
-        type: splitType,
-        autoSplit: true
-      });
-      
-      const targets = splitType === 'chars' ? split.chars : split.words;
-      
-      gsap.fromTo(targets,
-        { 
-          opacity: 0, 
-          y: 20 
-        },
-        {
+    let delay = 0;
+    const classList = el.className;
+    const delayMatch = classList.match(/scroll-into-view-(\d+)-?(\d*)s?/);
+    if (delayMatch) {
+      delay = parseFloat(delayMatch[1] + '.' + (delayMatch[2] || '0'));
+    }
+
+    ScrollTrigger.create({
+      trigger: el,
+      start: "top 85%",
+      once: true,
+      onEnter: () => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.8,
+          delay: delay,
+          ease: "power2.out",
+          clearProps: "filter,transform"
+        });
+      }
+    });
+  });
+
+  console.log('Scroll reveal initialized (' + hiddenElements.length + ' elements)');
+}
+
+// ============================================
+// 7. SECTION FADE-UP ANIMATIONS
+// ============================================
+function initSectionAnimations() {
+  const scrollElements = document.querySelectorAll('.scroll-into-view-0-4s, .scroll-into-view-06s, .scroll-into-view-08s, [class*="scroll-into-view"]');
+  
+  scrollElements.forEach(el => {
+    if (el.closest('.home-hero-section')) return;
+    if (el.hasAttribute('data-scroll-init')) return;
+    el.setAttribute('data-scroll-init', 'true');
+
+    const style = el.getAttribute('style') || '';
+    const hasHiddenStyles = style.includes('opacity') || style.includes('transform') || style.includes('filter');
+    
+    if (!hasHiddenStyles) {
+      gsap.set(el, { opacity: 0, y: 30 });
+    }
+
+    let delay = 0;
+    const delayMatch = el.className.match(/scroll-into-view-(\d+)-?(\d*)s?/);
+    if (delayMatch) {
+      delay = parseFloat(delayMatch[1] + '.' + (delayMatch[2] || '0')) || 0;
+    }
+
+    ScrollTrigger.create({
+      trigger: el,
+      start: "top 85%",
+      once: true,
+      onEnter: () => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.8,
+          delay: delay,
+          ease: "power2.out",
+          clearProps: "filter,transform"
+        });
+      }
+    });
+  });
+
+  const sections = document.querySelectorAll('.splittext-wrapper, .section-benefits, .pricing-card, .partners-grid, .helpstartups_wrapper');
+  
+  sections.forEach(el => {
+    if (el.closest('.home-hero-section')) return;
+    if (el.hasAttribute('data-scroll-init')) return;
+    el.setAttribute('data-scroll-init', 'true');
+
+    const computedStyle = window.getComputedStyle(el);
+    const currentOpacity = parseFloat(computedStyle.opacity);
+    
+    if (currentOpacity >= 1) return;
+
+    ScrollTrigger.create({
+      trigger: el,
+      start: "top 85%",
+      once: true,
+      onEnter: () => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.8,
+          ease: "power2.out",
+          clearProps: "filter,transform"
+        });
+      }
+    });
+  });
+
+  if (scrollElements.length > 0 || sections.length > 0) {
+    console.log('Section animations initialized');
+  }
+}
+
+// ============================================
+// 8. STAGGER CHILDREN ANIMATION
+// ============================================
+function initStaggerAnimations() {
+  const staggerContainers = document.querySelectorAll('[data-gsap="stagger-children"]');
+  
+  staggerContainers.forEach(container => {
+    const staggerValue = parseFloat(container.getAttribute('data-gsap-stagger')) || 0.1;
+    const children = container.children;
+    
+    if (children.length === 0) return;
+
+    gsap.set(children, { opacity: 0, y: 30 });
+
+    ScrollTrigger.create({
+      trigger: container,
+      start: "top 80%",
+      once: true,
+      onEnter: () => {
+        gsap.to(children, {
           opacity: 1,
           y: 0,
           duration: 0.6,
-          stagger: staggerAmount,
-          ease: CONFIG.ease,
-          scrollTrigger: {
-            trigger: el,
-            start: start,
-            toggleActions: 'play none none none'
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * Highlight Text on Scroll (scrubbed character reveal)
-   */
-  function initHighlightText() {
-    // Check if SplitText is available
-    if (typeof SplitText === 'undefined') {
-      console.warn('SplitText plugin not loaded');
-      return;
-    }
-
-    const elements = document.querySelectorAll(CONFIG.selectors.highlightText);
-    
-    elements.forEach(heading => {
-      const scrollStart = getAttrStr(heading, 'data-highlight-scroll-start', 'top 90%');
-      const scrollEnd = getAttrStr(heading, 'data-highlight-scroll-end', 'center 40%');
-      const fadedValue = getAttr(heading, 'data-highlight-fade', CONFIG.highlightFade);
-      const staggerValue = getAttr(heading, 'data-highlight-stagger', CONFIG.highlightStagger);
-      
-      new SplitText(heading, {
-        type: 'words, chars',
-        autoSplit: true,
-        onSplit(self) {
-          gsap.context(() => {
-            gsap.timeline({
-              scrollTrigger: {
-                scrub: true,
-                trigger: heading,
-                start: scrollStart,
-                end: scrollEnd
-              }
-            }).from(self.chars, {
-              autoAlpha: fadedValue,
-              stagger: staggerValue,
-              ease: 'linear'
-            });
-          });
-        }
-      });
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COUNTER ANIMATION
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Number Counter Animation
-   */
-  function initCounter() {
-    const elements = document.querySelectorAll(CONFIG.selectors.counter);
-    
-    elements.forEach(el => {
-      const target = getAttr(el, 'data-gsap-target', 100);
-      const duration = getAttr(el, 'data-gsap-duration', 2);
-      const start = getAttrStr(el, 'data-gsap-start', CONFIG.scrollStart);
-      const prefix = getAttrStr(el, 'data-gsap-prefix', '');
-      const suffix = getAttrStr(el, 'data-gsap-suffix', '');
-      
-      const counter = { value: 0 };
-      
-      gsap.to(counter, {
-        value: target,
-        duration: duration,
-        ease: 'power1.out',
-        scrollTrigger: {
-          trigger: el,
-          start: start,
-          toggleActions: 'play none none none'
-        },
-        onUpdate: () => {
-          el.textContent = prefix + Math.round(counter.value) + suffix;
-        }
-      });
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HOVER ANIMATIONS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Hover Glow Effect
-   */
-  function initHoverGlow() {
-    const elements = document.querySelectorAll(CONFIG.selectors.hoverGlow);
-    
-    elements.forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        gsap.to(el, {
-          boxShadow: '0 0 30px rgba(255, 120, 30, 0.4)',
-          duration: 0.3,
-          ease: 'power2.out'
+          stagger: staggerValue,
+          ease: "power2.out"
         });
-      });
-      
-      el.addEventListener('mouseleave', () => {
-        gsap.to(el, {
-          boxShadow: '0 0 0px rgba(255, 120, 30, 0)',
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-    });
-  }
-
-  /**
-   * Hover Grow Effect
-   */
-  function initHoverGrow() {
-    const elements = document.querySelectorAll(CONFIG.selectors.hoverGrow);
-    
-    elements.forEach(el => {
-      const scale = getAttr(el, 'data-gsap-hover-scale', 1.05);
-      
-      el.addEventListener('mouseenter', () => {
-        gsap.to(el, {
-          scale: scale,
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-      
-      el.addEventListener('mouseleave', () => {
-        gsap.to(el, {
-          scale: 1,
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-    });
-  }
-
-  /**
-   * Magnetic Button Effect
-   */
-  function initMagnetic() {
-    const elements = document.querySelectorAll(CONFIG.selectors.hoverMagnetic);
-    
-    elements.forEach(el => {
-      const strength = getAttr(el, 'data-gsap-magnetic-strength', 0.3);
-      
-      el.addEventListener('mousemove', (e) => {
-        const rect = el.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        
-        gsap.to(el, {
-          x: x * strength,
-          y: y * strength,
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-      
-      el.addEventListener('mouseleave', () => {
-        gsap.to(el, {
-          x: 0,
-          y: 0,
-          duration: 0.5,
-          ease: 'elastic.out(1, 0.5)'
-        });
-      });
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FOOTER PARALLAX
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Footer Parallax Effect
-   * Creates a reveal effect where the footer appears fixed while scrolling
-   * Based on Osmo Supply's footer parallax pattern
-   */
-  function initFooterParallax() {
-    const cfg = CONFIG.footerParallax;
-    const wrappers = document.querySelectorAll(cfg.wrapper);
-
-    if (wrappers.length === 0) return;
-
-    wrappers.forEach((wrapper, index) => {
-      const inner = wrapper.querySelector(cfg.inner);
-
-      if (!inner) {
-        console.warn(`Footer Parallax: No inner element found for wrapper ${index + 1}`);
-        return;
       }
-
-      // Get the natural height of the footer
-      const footerHeight = inner.offsetHeight;
-
-      // Set wrapper height to match footer
-      gsap.set(wrapper, { 
-        height: footerHeight 
-      });
-
-      // Set initial position for the inner footer
-      gsap.set(inner, {
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        width: '100%'
-      });
-
-      // Create the parallax effect
-      ScrollTrigger.create({
-        trigger: wrapper,
-        start: 'top bottom',
-        end: 'bottom bottom',
-        markers: cfg.markers,
-        onUpdate: (self) => {
-          // Skip parallax on mobile
-          if (isMobile()) {
-            gsap.set(inner, { y: 0 });
-            return;
-          }
-
-          const progress = self.progress;
-          const yOffset = (1 - progress) * footerHeight * cfg.parallaxAmount;
-          
-          gsap.set(inner, { 
-            y: yOffset,
-            position: 'fixed',
-            bottom: 0
-          });
-        },
-        onLeave: () => {
-          // When scrolled past, make footer relative
-          gsap.set(inner, { 
-            position: 'relative', 
-            y: 0 
-          });
-        },
-        onEnterBack: () => {
-          // When scrolling back up, restore fixed position
-          gsap.set(inner, { 
-            position: 'fixed', 
-            bottom: 0 
-          });
-        }
-      });
     });
+  });
 
-    // Handle window resize - update wrapper heights
-    let footerResizeTimeout;
-    window.addEventListener('resize', () => {
-      clearTimeout(footerResizeTimeout);
-      footerResizeTimeout = setTimeout(() => {
-        wrappers.forEach(wrapper => {
-          const inner = wrapper.querySelector(cfg.inner);
-          if (inner) {
-            const footerHeight = inner.offsetHeight;
-            gsap.set(wrapper, { height: footerHeight });
-          }
-        });
-        ScrollTrigger.refresh();
-      }, 250);
-    });
+  if (staggerContainers.length > 0) {
+    console.log('Stagger animations initialized (' + staggerContainers.length + ' containers)');
   }
+}
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PAGE TRANSITIONS (Pixelated)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Generate pixel grid for page transition
-   */
-  function adjustTransitionGrid() {
-    return new Promise((resolve) => {
-      const transition = document.querySelector(CONFIG.transition.selector);
-      
-      if (!transition) {
-        resolve();
-        return;
-      }
-
-      const computedStyle = window.getComputedStyle(transition);
-      const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
-      const columns = gridTemplateColumns.split(' ').length;
-      const blockSize = window.innerWidth / columns;
-      const rowsNeeded = Math.ceil(window.innerHeight / blockSize);
-
-      transition.style.gridTemplateRows = `repeat(${rowsNeeded}, ${blockSize}px)`;
-      
-      const totalBlocks = columns * rowsNeeded;
-      transition.innerHTML = '';
-
-      for (let i = 0; i < totalBlocks; i++) {
-        const block = document.createElement('div');
-        block.classList.add('transition-block');
-        transition.appendChild(block);
-      }
-
-      resolve();
-    });
-  }
-
-  /**
-   * Page load transition animation
-   */
-  function animatePageLoad() {
-    const transition = document.querySelector(CONFIG.transition.selector);
-    if (!transition) return;
-
-    gsap.timeline({
-      onStart: () => gsap.set(CONFIG.transition.selector, { background: 'transparent' }),
-      onComplete: () => gsap.set(CONFIG.transition.selector, { display: 'none' }),
-      defaults: { ease: 'linear' }
-    }).to(CONFIG.transition.blockSelector, {
-      opacity: 0,
-      duration: 0.1,
-      stagger: { 
-        amount: CONFIG.transition.pageLoadStagger, 
-        from: 'random' 
-      }
-    }, 0.5);
-  }
-
-  /**
-   * Page exit transition animation
-   */
-  function animatePageExit(destination) {
-    gsap.set(CONFIG.transition.selector, { display: 'grid' });
-    
-    gsap.fromTo(CONFIG.transition.blockSelector,
-      { autoAlpha: 0 },
-      {
-        autoAlpha: 1,
-        duration: 0.001,
-        ease: 'linear',
-        stagger: { 
-          amount: CONFIG.transition.pageExitStagger, 
-          from: 'random' 
-        },
-        onComplete: () => {
-          window.location.href = destination;
-        }
-      }
-    );
-  }
-
-  /**
-   * Check if link should trigger page transition
-   */
-  function isValidTransitionLink(link) {
-    const href = link.getAttribute('href') || '';
-    
-    try {
-      const hostname = new URL(link.href, window.location.origin).hostname;
-      return (
-        hostname === window.location.hostname &&
-        !href.startsWith('#') &&
-        link.getAttribute('target') !== '_blank' &&
-        !link.hasAttribute('data-transition-prevent')
-      );
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /**
-   * Initialize page transitions
-   */
-  function initPageTransitions() {
-    const transition = document.querySelector(CONFIG.transition.selector);
-    if (!transition) return;
-
-    adjustTransitionGrid().then(() => {
-      animatePageLoad();
-      
-      // Setup link handlers
-      const validLinks = Array.from(document.querySelectorAll('a')).filter(isValidTransitionLink);
-      validLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          animatePageExit(link.href);
-        });
-      });
-    });
-
-    // Handle browser back/forward
-    window.addEventListener('pageshow', (e) => {
-      if (e.persisted) window.location.reload();
-    });
-
-    // Debounced resize
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(adjustTransitionGrid, 150);
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // INITIALIZATION
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Register GSAP plugins
-   */
-  function registerPlugins() {
-    if (typeof gsap === 'undefined') {
-      console.error('GSAP is required');
-      return false;
-    }
-
-    gsap.registerPlugin(ScrollTrigger);
-    
-    if (typeof SplitText !== 'undefined') {
-      gsap.registerPlugin(SplitText);
-    }
-    
-    return true;
-  }
-
-  /**
-   * Initialize all animations
-   */
-  function init() {
-    if (!registerPlugins()) return;
-    
-    // Skip animations if user prefers reduced motion
-    if (prefersReducedMotion()) {
-      // Make all hidden elements visible
-      document.querySelectorAll('[data-gsap]').forEach(el => {
-        el.style.opacity = '1';
-        el.style.transform = 'none';
-      });
-      return;
-    }
-
-    // Hero animations (immediate)
-    initHero();
-
-    // Scroll animations
-    initFadeUp();
-    initFadeDown();
-    initFadeLeft();
-    initFadeRight();
-    initZoomIn();
-    initScaleUp();
-    initStaggerChildren();
-
-    // Text animations
-    initSplitText();
+// ============================================
+// MASTER INITIALIZATION
+// ============================================
+document.addEventListener("DOMContentLoaded", () => {
+  document.fonts.ready.then(() => {
+    initPixelatedImageReveal();
+    initScrambleAndSplitText();
     initHighlightText();
+    applyPremiumPillDesign();
+    initHeroEntrance();
+    initScrollReveal();
+    initSectionAnimations();
+    initStaggerAnimations();
 
-    // Counter
-    initCounter();
+    console.log('BrandingLab animations initialized');
+  });
+});
 
-    // Hover effects
-    initHoverGlow();
-    initHoverGrow();
-    initMagnetic();
-
-    // Footer parallax
-    initFooterParallax();
-
-    // Page transitions
-    initPageTransitions();
-
-    // Refresh ScrollTrigger after all setup
-    ScrollTrigger.refresh();
-  }
-
-  // Start when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-  // Expose to window for debugging
-  window.BrandingLabGSAP = {
-    init,
-    refresh: () => ScrollTrigger.refresh(),
-    config: CONFIG
-  };
-
-})();
+// Cookie consent event listeners
+window.addEventListener('cookieConsentAccepted', () => console.log('User accepted cookies'));
+window.addEventListener('cookieConsentDenied', () => console.log('User denied cookies'));
