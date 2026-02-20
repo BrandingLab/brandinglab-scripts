@@ -26,8 +26,8 @@
 // ============================================
 function initPixelatedImageReveal() {
   const animationStepDuration = 0.3;
-  const gridSize = 4;
-  const pixelSize = 100 / gridSize;
+  const gridSize = 7;
+  const pixelSize = 50 / gridSize;
   const cards = document.querySelectorAll('[data-pixelated-image-reveal]');
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches;
 
