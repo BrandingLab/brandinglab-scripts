@@ -6,7 +6,8 @@
  * 
  * Load this in <head> BEFORE the page renders.
  * 
- * @version 2.1.0
+ * @version 2.2.0
+ * @updated 2026-02-21 — Chunky 5-column grid + brand color fix
  */
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -91,11 +92,21 @@
    PAGE TRANSITION STYLES
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/**
+ * Pixelated Page Transition
+ * Based on Osmo Supply pattern
+ * 
+ * Grid columns control pixel size:
+ * - Desktop: 5 columns (chunky pixels)
+ * - Tablet: 4 columns
+ * - Mobile: 3 columns
+ */
+
 .transition {
   z-index: 9999;
-  background-color: #1a1a1a; /* Change to your brand color */
+  background-color: #ff4c24; /* BrandingLab accent orange */
   flex-flow: wrap;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(5, 1fr); /* 5 columns = chunky pixels */
   place-content: center;
   place-items: center;
   width: 100%;
@@ -110,7 +121,7 @@
 
 .transition-block {
   aspect-ratio: 1;
-  background-color: #1a1a1a; /* Match container color */
+  background-color: #ff4c24; /* BrandingLab accent orange */
   width: 100%;
 }
 
@@ -122,18 +133,18 @@
 /* Responsive grid adjustments */
 @media screen and (max-width: 991px) {
   .transition {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* Tablet: 4 columns */
   }
 }
 
 @media screen and (max-width: 479px) {
   .transition {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr); /* Mobile: 3 columns */
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   HERO EYEBROW PILL STYLE (Optional)
+   HERO EYEBROW PILL STYLE
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .hero-eyebrow {
@@ -145,8 +156,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 120, 30, 0.12);
-  border: 1px solid rgba(255, 120, 30, 0.35);
+  background: rgba(255, 76, 36, 0.12);
+  border: 1px solid rgba(255, 76, 36, 0.35);
   border-radius: 100px;
   padding: 0.55rem 1.5rem;
   margin-bottom: 1.25rem;
